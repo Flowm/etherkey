@@ -1,11 +1,11 @@
 #define HWSERIAL Serial1
 
+#include "utils.h"
+
 #define KBD_BUFFSZ 200
-#define PRNT_BUFFSZ 80
 
 char inChar;
 char kbd_buff[KBD_BUFFSZ];
-char prnt_buff[PRNT_BUFFSZ];
 int kbd_idx = 0;
 int in_mode = 1;
 
@@ -23,8 +23,8 @@ void loop() {
     //TODO: Use Prefix + Number/ Character
     if (inChar < 10) {
       in_mode = inChar;
-      snprintf(prnt_buff, PRNT_BUFFSZ, "Switching to mode %i", in_mode);
-      HWSERIAL.println(prnt_buff);
+      SerialClear();
+      SerialPrintf("Switching to mode %i", in_mode);
       return;
     }
 
@@ -46,12 +46,12 @@ void loop() {
         break;
 
       case 3: //DEBUG MODE
-        snprintf(prnt_buff, PRNT_BUFFSZ, "Recv -> Keycode: %i\tCharacter: %c", inChar, inChar);
-        HWSERIAL.println(prnt_buff);
+        SerialPrintf("Recv -> Keycode: %i\tCharacter: %c", inChar, inChar);
         break;
     }
   }
 }
+
 
 void parse(char * str) {
 }
