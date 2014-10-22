@@ -5,8 +5,10 @@
 
 char inChar;
 char kbd_buff[KBD_BUFFSZ];
-int kbd_idx = 0;
 char prnt_buff[PRNT_BUFFSZ];
+int kbd_idx = 0;
+int in_mode = 1;
+
 
 void setup() {
   HWSERIAL.begin(115200);
@@ -17,21 +19,39 @@ void loop() {
   if (HWSERIAL.available() > 0) {
     inChar = HWSERIAL.read();
 
-    if (inChar == 3) { //CTRL-C Clear
-      HWSERIAL.println("Ctrl-C received, clearing buffer");
-      kbd_idx=0;
-    } else if (inChar == 16) { //CTRL-P Print
-      HWSERIAL.println("Ctrl-P recived, printing buffer in 3 seconds");
-      delay(3000);
-      for(int i=0; i<kbd_idx; i++) {
-        Keyboard.write(kbd_buff[i]);
-      }
-      kbd_idx = 0;
-    } else if (kbd_idx<100) {
-      snprintf(prnt_buff, PRNT_BUFFSZ, "Recv -> Keycode: %i\tCharacter: %c", inChar, inChar);
+    // Switch mode via control character
+    //TODO: Use Prefix + Number/ Character
+    if (inChar < 10) {
+      in_mode = inChar;
+      snprintf(prnt_buff, PRNT_BUFFSZ, "Switching to mode %i", in_mode);
       HWSERIAL.println(prnt_buff);
+      return;
+    }
 
-      kbd_buff[kbd_idx++] = inChar;
+    switch(in_mode) {
+      case 1: //BUFFERED MODE
+        if (inChar == '\n' || inChar == '\r' || kbd_idx >= KBD_BUFFSZ-1) {
+          HWSERIAL.println();
+          kbd_buff[kbd_idx++] = '\0';
+          parse(kbd_buff);
+          kbd_idx = 0;
+        } else {
+          kbd_buff[kbd_idx++] = inChar;
+          HWSERIAL.write(inChar);
+        }
+
+        break;
+      case 2: //INTERACTIVE MODE
+        HWSERIAL.write(inChar);
+        break;
+
+      case 3: //DEBUG MODE
+        snprintf(prnt_buff, PRNT_BUFFSZ, "Recv -> Keycode: %i\tCharacter: %c", inChar, inChar);
+        HWSERIAL.println(prnt_buff);
+        break;
     }
   }
+}
+
+void parse(char * str) {
 }
