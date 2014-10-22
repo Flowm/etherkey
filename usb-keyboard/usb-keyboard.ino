@@ -21,10 +21,10 @@ void loop() {
 
     // Switch mode via control character
     //TODO: Use Prefix + Number/ Character
-    if (inChar < 10) {
+    if (inChar <= 7) {
       in_mode = inChar;
       SerialClear();
-      SerialPrintf("Switching to mode %i", in_mode);
+      SerialPrintfln("Switching to mode %i", in_mode);
       return;
     }
 
@@ -46,7 +46,7 @@ void loop() {
         break;
 
       case 3: //DEBUG MODE
-        SerialPrintf("Recv -> Keycode: %i\tCharacter: %c", inChar, inChar);
+        SerialPrintfln("Recv -> Keycode: %i\tCharacter: %c", inChar, inChar);
         break;
     }
   }
