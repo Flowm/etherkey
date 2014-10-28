@@ -7,7 +7,8 @@
 char inChar;
 char kbd_buff[KBD_BUFFSZ];
 int kbd_idx = 0;
-int in_mode = 2;
+int in_mode = 3;
+bool switch_mode = 0;
 
 
 void setup() {
@@ -19,14 +20,21 @@ void loop() {
   if (HWSERIAL.available() > 0) {
     inChar = HWSERIAL.read();
 
-    // Switch mode via control character
-    //TODO: Use Prefix + Number/ Character
-    //if (inChar <= 7) {
-    //  in_mode = inChar;
-    //  SerialClear();
-    //  SerialPrintfln("Switching to mode %i", in_mode);
-    //  return;
-    //}
+    if (switch_mode == 1) {
+      if (inChar >= 49 && inChar <= 51 ) {
+	in_mode = inChar - 48;
+      } else {
+	in_mode = 3;
+      }
+      SerialClear();
+      SerialPrintfln("Switching to mode %i", in_mode);
+      switch_mode = 0;
+      return;
+    } else if (inChar == 17) {
+      switch_mode = 1;
+      HWSERIAL.print("Select Mode: ");
+    }
+
     
     switch(in_mode) {
       case 1: //BUFFERED MODE
@@ -46,7 +54,8 @@ void loop() {
         break;
 
       case 3: //DEBUG MODE
-        SerialPrintfln("Recv -> Keycode: %i\tCharacter: %c", inChar, inChar);
+        //SerialPrintfln("Recv -> Keycode: %i\tCharacter: %c", inChar, inChar);
+        SerialPrintfln("Recv -> Keycode: %i", inChar);
         break;
     }
   }
