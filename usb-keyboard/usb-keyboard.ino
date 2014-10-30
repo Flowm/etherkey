@@ -1,14 +1,17 @@
 #define HWSERIAL Serial1
 
 #include "utils.h"
+#include "usb_keyboard.c"
 
 #define KBD_BUFFSZ 200
+#define PREFIX 17 // CTRL-Q
 
 char inChar;
 char kbd_buff[KBD_BUFFSZ];
 int kbd_idx = 0;
-int in_mode = 3;
-bool switch_mode = 0;
+
+int in_mode = 1;
+bool switch_mode = false;
 
 
 void setup() {
@@ -20,42 +23,45 @@ void loop() {
   if (HWSERIAL.available() > 0) {
     inChar = HWSERIAL.read();
 
-    if (switch_mode == 1) {
+    if (inChar == PREFIX) {
+      switch_mode = true;
+      SerialPrintf("Select Mode: ");
+      return;
+    }
+    if (switch_mode) {
       if (inChar >= 49 && inChar <= 51 ) {
-	in_mode = inChar - 48;
+        in_mode = inChar - 48;
       } else {
-	in_mode = 3;
+        in_mode = 3;
       }
       SerialClear();
       SerialPrintfln("Switching to mode %i", in_mode);
-      switch_mode = 0;
+      switch_mode = false;
       return;
-    } else if (inChar == 17) {
-      switch_mode = 1;
-      HWSERIAL.print("Select Mode: ");
     }
 
-    
+
     switch(in_mode) {
-      case 1: //BUFFERED MODE
+      case 1: //COMMAND MODE
         if (inChar == '\n' || inChar == '\r' || kbd_idx >= KBD_BUFFSZ-1) {
-          HWSERIAL.println();
+          SerialPrintfln("");
           kbd_buff[kbd_idx++] = '\0';
           parse(kbd_buff);
           kbd_idx = 0;
         } else {
+          //TODO: React to special characters (backspace, arrow keys...)
           kbd_buff[kbd_idx++] = inChar;
           HWSERIAL.write(inChar);
         }
-
         break;
+
       case 2: //INTERACTIVE MODE
-	interactive_echo(inChar);
+        interactive_echo(inChar);
         break;
 
       case 3: //DEBUG MODE
-        //SerialPrintfln("Recv -> Keycode: %i\tCharacter: %c", inChar, inChar);
-        SerialPrintfln("Recv -> Keycode: %i", inChar);
+        SerialPrintfln("Recv -> Character: %c - ASCII-Code: %3i - USB-Scancode: %3i", inChar, inChar, unicode_to_keycode(inChar));
+        //SerialPrintfln("Recv -> ASCII-Code:: %3i", inChar);
         break;
     }
   }
@@ -76,13 +82,13 @@ void interactive_echo(char str) {
     if (HWSERIAL.read() == 91) {
       key = HWSERIAL.read();
       if (65 <= key <= 68) {
-	if (key == 65)
+        if (key == 65)
           key = KEY_UP;
-	if (key == 66)
+        if (key == 66)
           key = KEY_DOWN;
-	if (key == 67)
+        if (key == 67)
           key = KEY_RIGHT;
-	if (key == 68)
+        if (key == 68)
           key = KEY_LEFT;
         Keyboard.set_key1(key);
         Keyboard.send_now();
