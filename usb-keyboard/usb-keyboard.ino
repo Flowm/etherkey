@@ -4,6 +4,7 @@
 
 #define KBD_BUFFSZ 200
 #define PREFIX 17 // CTRL-Q
+#define MYDEBUG
 
 char inChar;
 char peekChar;
@@ -62,7 +63,7 @@ void loop() {
         if (inChar == '\n' || inChar == '\r' || kbd_idx >= KBD_BUFFSZ-1) {
           SerialPrintfln("");
           kbd_buff[kbd_idx++] = '\0';
-          parse(kbd_buff);
+          c_parse(kbd_buff);
           kbd_idx = 0;
         } else {
           //TODO: React to special characters (backspace, arrow keys...)
@@ -78,6 +79,25 @@ void loop() {
       case DEBUG:
         SerialPrintfln("Recv -> Character: %c - ASCII-Code: %3i - USB-Scancode: %3i", inChar, inChar, unicode_to_keycode(inChar));
         //SerialPrintfln("Recv -> ASCII-Code:: %3i", inChar);
+        break;
+
+      case 4: //VERBOSE DEBUG MODE
+        SerialPrintfln("Recv -> Character: %c - ASCII-Code: %3i", inChar, inChar);
+
+        char keycode_b[33];
+        char key_b[33];
+        char mod_b[33];
+
+        KEYCODE_TYPE keycode = unicode_to_keycode(inChar);
+        itoa(keycode, keycode_b, 2);
+
+        uint8_t key = keycode_to_key(keycode);
+        itoa(key, key_b, 2);
+
+        uint8_t mod = keycode_to_modifier(keycode);
+        itoa(mod, mod_b, 2);
+
+        SerialPrintfln("keycode: %3i = %08s | key: %3i = %08s | mod: %3i = %08s", keycode, keycode_b, key, key_b, mod, mod_b);
         break;
     }
   }
@@ -150,5 +170,96 @@ void interactive_send(char key) {
   }
 }
 
-void parse(char * str) {
+
+// Command mode functions
+void c_parse(char * str) {
+  int state = 0;
+  char * pch;
+
+  pch = strtok(str," ");
+#ifdef MYDEBUG
+  SerialPrintfln("\t%-10s -> %x", pch, str2int(pch));
+#endif
+
+  switch (str2int(pch)) {
+    case str2int("SendRaw"):
+      // Send the rest of the line literally
+      pch = strtok (NULL,"");
+      if (pch != NULL)
+        c_sendraw(pch);
+      break;
+
+    case str2int("Send"):
+      // Send the rest of the line (and parse special characters)
+      pch = strtok (NULL,"");
+      if (pch != NULL)
+        c_send(pch);
+      break;
+
+    case str2int("UnicodeLinux"):
+    case str2int("UCL"):
+      // Send a single unicode character (on Linux)
+      pch = strtok (NULL,"");
+      if (pch != NULL)
+        c_unicode(pch, true);
+      break;
+
+    case str2int("UnicodeWindows"):
+    case str2int("UCW"):
+      // Send a single unicode character (on Windows)
+      pch = strtok (NULL,"");
+      if (pch != NULL)
+        c_unicode(pch, false);
+      break;
+
+    case str2int("Sleep"):
+      // Sleep a certain amount of time in ms
+      pch = strtok (NULL,"");
+      if (pch != NULL)
+        c_sleep(pch);
+      break;
+
+    case str2int("Enter"):
+      // Send the Enter Key
+      //TODO
+      break;
+
+    case str2int("Help"):
+      // Display a informative help message
+      //TODO
+      break;
+
+    default:
+      // Handle unknown command
+      //TODO
+      break;
+  }
+}
+
+void c_sendraw(char * pch) {
+  char * c = pch;
+
+  while (*c != NULL) {
+    //XXX
+    c++;
+  }
+}
+
+void c_send(char * pch) {
+  char * c = pch;
+
+  while (*c != NULL) {
+    //XXX
+    c++;
+  }
+}
+
+void c_unicode(char * pch, bool linux) {
+  //XXX
+}
+
+void c_sleep(char * pch) {
+  int time = atoi(pch);
+  SerialPrintfln("\tSleep %i ms", time);
+  //XXX
 }
