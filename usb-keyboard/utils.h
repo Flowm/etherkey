@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Print.h>
+#include "usb_keyboard.c"
 
 #ifndef HWSERIAL
 #define HWSERIAL Serial
@@ -26,4 +27,12 @@ void SerialClearOut(Print &output) {
   output.print("[2J");
   output.write(27);
   output.print("[H");
+}
+
+void SendKey(char key) {
+  Keyboard.set_key1(key);
+  Keyboard.send_now();
+  Keyboard.set_modifier(0);
+  Keyboard.set_key1(0);
+  Keyboard.send_now();
 }

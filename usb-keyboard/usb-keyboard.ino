@@ -1,7 +1,6 @@
 #define HWSERIAL Serial1
 
 #include "utils.h"
-#include "usb_keyboard.c"
 
 #define KBD_BUFFSZ 200
 #define PREFIX 17 // CTRL-Q
@@ -67,71 +66,70 @@ void loop() {
   }
 }
 
-void interactive_echo(char str) {
-  //TODO: Print on Serial
-  //TODO: Make it work on Windows
+
+int parse_escape() {
   char key;
-  if (str <= 26) {
-    Keyboard.set_modifier(MODIFIERKEY_CTRL);
-    Keyboard.set_key1(str+3);
-    Keyboard.send_now();
-    Keyboard.set_modifier(0);
-    Keyboard.set_key1(0);
-    Keyboard.send_now();
-  } else if (str == 27) {
-    if (HWSERIAL.read() == 91) {
-      key = HWSERIAL.read();
-      if (65 <= key <= 68) {
-        if (key == 65)
-          key = KEY_UP;
-        if (key == 66)
-          key = KEY_DOWN;
-        if (key == 67)
-          key = KEY_RIGHT;
-        if (key == 68)
-          key = KEY_LEFT;
-        Keyboard.set_key1(key);
-        Keyboard.send_now();
-        Keyboard.set_modifier(0);
-        Keyboard.set_key1(0);
-        Keyboard.send_now();
+  key = HWSERIAL.read();
+  if (key == 91) {
+    key = HWSERIAL.read();
+    if (65 <= key && key <= 68) {
+      if (key == 65)
+        key = KEY_UP;
+      if (key == 66)
+        key = KEY_DOWN;
+      if (key == 67)
+        key = KEY_RIGHT;
+      if (key == 68)
+        key = KEY_LEFT;
+      SendKey(key);
+    } else if (key == 51) {
+      key = HWSERIAL.peek();
+      if (key == 126) {
+        key = HWSERIAL.read();
+        SendKey(KEY_DELETE);
       }
     }
-  } else {
-    Keyboard.print(str);
   }
+  return 0; //TODO: Error-Codes would be nice
+}
 
-  /* switch(str) {
-    case 3:
-      Keyboard.set_modifier(MODIFIERKEY_CTRL);
-      Keyboard.set_key1(6);
-      HWSERIAL.write("^C\r\n");
-      Keyboard.send_now();
-      break;
-    case 4:
-      Keyboard.set_modifier(MODIFIERKEY_CTRL);
-      Keyboard.set_key1(KEY_D);
-      HWSERIAL.write("^D\r\n");
-      Keyboard.send_now();
-      break;
-    case 8:
-      Keyboard.set_modifier(MODIFIERKEY_CTRL);
-      Keyboard.set_key1(KEY_H);
-      Keyboard.send_now();
-      break;
+void interactive_echo(char key) {
+  //TODO: Print on Serial
+  //TODO: Make it work on Windows
+
+  switch(key) {
+    case 10:
     case 13:
-      Keyboard.set_modifier(MODIFIERKEY_CTRL);
-      Keyboard.set_key1(KEY_M);
-      Keyboard.send_now();
+      SendKey(KEY_ENTER);
       break;
-    case 37:
-      Keyboard.set_key1(KEY_LEFT);
-      Keyboard.send_now();
+
+    case 8:
+    case 127:
+      SendKey(KEY_BACKSPACE);
       break;
+
+    case 9:
+      SendKey(KEY_TAB);
+      break;
+
+    case 27:
+      key = HWSERIAL.peek();
+      if(key == 255) {
+        SendKey(KEY_ESC);
+      } else {
+        parse_escape();
+      }
+      break;
+
     default:
-      Keyboard.print(str);
+      if (key <= 26) {
+        Keyboard.set_modifier(MODIFIERKEY_CTRL);
+        SendKey(key+3);
+      } else {
+        Keyboard.print(key);
+      }
       break;
-  } */
+  }
 }
 
 void parse(char * str) {
