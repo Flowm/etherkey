@@ -104,35 +104,39 @@ void loop() {
 }
 
 
-int parse_escape() {
-  char key;
-  key = HWSERIAL.read();
-  if (key == 91) {
-    key = HWSERIAL.read();
-    if (65 <= key && key <= 68) {
-      if (key == 65)
-        key = KEY_UP;
-      if (key == 66)
-        key = KEY_DOWN;
-      if (key == 67)
-        key = KEY_RIGHT;
-      if (key == 68)
-        key = KEY_LEFT;
-      SendKey(key);
-    } else if (key == 51) {
-      key = HWSERIAL.peek();
-      if (key == 126) {
-        key = HWSERIAL.read();
-        SendKey(KEY_DELETE);
+KEYCODE_TYPE escape_sequence_to_keycode() {
+  KEYCODE_TYPE keycode = 0;
+  char in_ascii;
+
+  in_ascii = HWSERIAL.peek();
+  if (in_ascii == 91) {
+    HWSERIAL.read();
+    in_ascii = HWSERIAL.peek();
+    if (in_ascii >= 65 && in_ascii <= 68) {
+      HWSERIAL.read();
+      if (in_ascii == 65)
+        keycode = KEY_UP;
+      if (in_ascii == 66)
+        keycode = KEY_DOWN;
+      if (in_ascii == 67)
+        keycode = KEY_RIGHT;
+      if (in_ascii == 68)
+        keycode = KEY_LEFT;
+    } else if (in_ascii == 51) {
+      in_ascii = HWSERIAL.peek();
+      if (in_ascii == 126) {
+        HWSERIAL.read();
+        keycode = KEY_DELETE;
       }
     }
   }
-  return 0; //TODO: Error-Codes would be nice
+  return keycode;
 }
 
 void interactive_send(char key) {
   //TODO: Print on Serial
   //TODO: Make it work on Windows
+  KEYCODE_TYPE keycode = 0;
 
   switch(key) {
     case 10:  //LF
@@ -154,7 +158,9 @@ void interactive_send(char key) {
       if(key == 255) {
         SendKey(KEY_ESC);
       } else {
-        parse_escape();
+        keycode = escape_sequence_to_keycode();
+        if (keycode)
+          SendKey(keycode);
       }
       break;
 
