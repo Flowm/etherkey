@@ -240,6 +240,9 @@ void c_sendraw(char * pch) {
   char * c = pch;
 
   while (*c != NULL) {
+#ifdef MYDEBUG
+    SerialPrintfln("\tWriting %c via USB", c);
+#endif
     //XXX
     c++;
   }
@@ -247,9 +250,37 @@ void c_sendraw(char * pch) {
 
 void c_send(char * pch) {
   char * c = pch;
+  int modifier = 0;
 
   while (*c != NULL) {
-    //XXX
+    switch (*c) {
+      case '!':
+        // ALT
+        modifier |= MODIFIERKEY_ALT;
+        break;
+      case '+':
+        // SHIFT
+        modifier |= MODIFIERKEY_SHIFT;
+        break;
+      case '^':
+        // CTRL
+        modifier |= MODIFIERKEY_CTRL;
+        break;
+      case '#':
+        // WIN
+        modifier |= MODIFIERKEY_GUI;
+        break;
+      default:
+        KEYCODE_TYPE keycode = unicode_to_keycode(*c);
+        uint8_t key = keycode_to_key(keycode);
+        uint8_t mod = keycode_to_modifier(keycode) | modifier;
+
+#ifdef MYDEBUG
+        SerialPrintfln("Writing %c via USB. Keycode: %3i", *c, key);
+#endif
+        usb_keyboard_press(key, mod);
+        break;
+    }
     c++;
   }
 }
@@ -260,6 +291,8 @@ void c_unicode(char * pch, bool linux) {
 
 void c_sleep(char * pch) {
   int time = atoi(pch);
+#ifdef MYDEBUG
   SerialPrintfln("\tSleep %i ms", time);
+#endif
   //XXX
 }
