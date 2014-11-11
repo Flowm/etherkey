@@ -29,10 +29,25 @@ void SerialClearOut(Print &output) {
   output.print("[H");
 }
 
-void SendKey(char key) {
+#define SerialWriteEsc(key) SerialWriteEscOut(HWSERIAL, key)
+int SerialWriteEscOut(Print &output, char key) {
+  //Writes char on serial, but handles special characters (backspace, arrow keys...) correctly
+  //Returns 0 for normal characters, 1 for special characters
+  //TODO
+  output.write(key);
+  return 0;
+}
+
+void SendKeyNow(char key) {
   Keyboard.set_key1(key);
   Keyboard.send_now();
   Keyboard.set_modifier(0);
   Keyboard.set_key1(0);
   Keyboard.send_now();
+}
+
+#define SendKey(key) SendKeyOut(HWSERIAL, key)
+void SendKeyOut(Print &output, char key) {
+  SerialWriteEscOut(output, key);
+  SendKeyNow(key);
 }

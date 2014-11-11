@@ -55,7 +55,7 @@ void loop() {
         break;
 
       case 2: //INTERACTIVE MODE
-        interactive_echo(inChar);
+        interactive_send(inChar);
         break;
 
       case 3: //DEBUG MODE
@@ -93,7 +93,7 @@ int parse_escape() {
   return 0; //TODO: Error-Codes would be nice
 }
 
-void interactive_echo(char key) {
+void interactive_send(char key) {
   //TODO: Print on Serial
   //TODO: Make it work on Windows
 
@@ -127,6 +127,7 @@ void interactive_echo(char key) {
         SendKey(key+3);
       } else {
         Keyboard.print(key);
+        SerialWriteEsc(key);
       }
       break;
   }
