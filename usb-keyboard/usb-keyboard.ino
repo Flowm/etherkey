@@ -7,18 +7,19 @@
 
 char inChar;
 char peekChar;
-char selectMode[] = "Select Mode: ";
 char kbd_buff[KBD_BUFFSZ];
 int kbd_idx = 0;
 
 int in_mode = 1;
-
+enum mode {INVALID, COMMAND, INTERACTIVE, DEBUG};
+const char * mode_strings[] = {"invalid", "command", "interactive", "debug"};
+char * selectMode = "Select Inputmode: [1] Command - [2] Interactive - [3] Debug";
 
 void setup() {
   HWSERIAL.begin(115200);
   delay(1000);
   SerialClear();
-  SerialPrintfln("Switching to mode %i", in_mode);
+  SerialPrintfln("Switching to %s mode", mode_strings[in_mode]);
 }
 
 void loop() {
@@ -37,11 +38,11 @@ void loop() {
           Keyboard.print(inChar);
           SerialDeleteChars(strlen(selectMode));
           return;
-        } else if (peekChar >= 49 && peekChar <= 51) {
+        } else if (peekChar > '0' && peekChar < ('0'+sizeof(mode_strings)/sizeof(char*))) {
           inChar = HWSERIAL.read();
-          in_mode = inChar - 48;
+          in_mode = inChar - '0';
           SerialClear();
-          SerialPrintfln("Switching to mode %i", in_mode);
+          SerialPrintfln("Switching to %s mode", mode_strings[in_mode]);
           return;
         } else if (peekChar == 27) {
           inChar = HWSERIAL.read();
@@ -49,13 +50,15 @@ void loop() {
           return;
         } else {
           inChar = HWSERIAL.read();
+          SerialDeleteChars(strlen(selectMode));
+          SerialPrintf("%s", selectMode);
         }
       } while (peekChar != 27 || peekChar != PREFIX || (peekChar >= 49 && peekChar <= 51));
     }
 
 
     switch(in_mode) {
-      case 1: //COMMAND MODE
+      case COMMAND:
         if (inChar == '\n' || inChar == '\r' || kbd_idx >= KBD_BUFFSZ-1) {
           SerialPrintfln("");
           kbd_buff[kbd_idx++] = '\0';
@@ -68,11 +71,11 @@ void loop() {
         }
         break;
 
-      case 2: //INTERACTIVE MODE
+      case INTERACTIVE:
         interactive_send(inChar);
         break;
 
-      case 3: //DEBUG MODE
+      case DEBUG:
         SerialPrintfln("Recv -> Character: %c - ASCII-Code: %3i - USB-Scancode: %3i", inChar, inChar, unicode_to_keycode(inChar));
         //SerialPrintfln("Recv -> ASCII-Code:: %3i", inChar);
         break;
@@ -112,17 +115,17 @@ void interactive_send(char key) {
   //TODO: Make it work on Windows
 
   switch(key) {
-    case 10:
-    case 13:
+    case 10:  //LF
+    case 13:  //CR
       SendKey(KEY_ENTER);
       break;
 
-    case 8:
-    case 127:
+    case 8:   //BS
+    case 127: //DEL
       SendKey(KEY_BACKSPACE);
       break;
 
-    case 9:
+    case 9:   //HT
       SendKey(KEY_TAB);
       break;
 
