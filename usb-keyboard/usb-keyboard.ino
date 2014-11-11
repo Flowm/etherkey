@@ -6,16 +6,19 @@
 #define PREFIX 17 // CTRL-Q
 
 char inChar;
+char peekChar;
+char selectMode[] = "Select Mode: ";
 char kbd_buff[KBD_BUFFSZ];
 int kbd_idx = 0;
 
 int in_mode = 1;
-bool switch_mode = false;
 
 
 void setup() {
   HWSERIAL.begin(115200);
   delay(1000);
+  SerialClear();
+  SerialPrintfln("Switching to mode %i", in_mode);
 }
 
 void loop() {
@@ -23,20 +26,31 @@ void loop() {
     inChar = HWSERIAL.read();
 
     if (inChar == PREFIX) {
-      switch_mode = true;
-      SerialPrintf("Select Mode: ");
-      return;
-    }
-    if (switch_mode) {
-      if (inChar >= 49 && inChar <= 51 ) {
-        in_mode = inChar - 48;
-      } else {
-        in_mode = 3;
-      }
-      SerialClear();
-      SerialPrintfln("Switching to mode %i", in_mode);
-      switch_mode = false;
-      return;
+      SerialPrintf("%s", selectMode);
+      do {
+        while (HWSERIAL.available() == 0) {
+          delay(100);
+        }
+        peekChar = HWSERIAL.peek();
+        if (peekChar == PREFIX) {
+          inChar = HWSERIAL.read();
+          Keyboard.print(inChar);
+          SerialDeleteChars(strlen(selectMode));
+          return;
+        } else if (peekChar >= 49 && peekChar <= 51) {
+          inChar = HWSERIAL.read();
+          in_mode = inChar - 48;
+          SerialClear();
+          SerialPrintfln("Switching to mode %i", in_mode);
+          return;
+        } else if (peekChar == 27) {
+          inChar = HWSERIAL.read();
+          SerialDeleteChars(strlen(selectMode));
+          return;
+        } else {
+          inChar = HWSERIAL.read();
+        }
+      } while (peekChar != 27 || peekChar != PREFIX || (peekChar >= 49 && peekChar <= 51));
     }
 
 

@@ -29,6 +29,24 @@ void SerialClearOut(Print &output) {
   output.print("[H");
 }
 
+#define SerialDeleteChars(len) SerialDeleteCharsOut(HWSERIAL, len)
+void SerialDeleteCharsOut(Print &output, int len) {
+  char buff[7];
+  output.write(27);
+  snprintf(buff, sizeof(buff), "[%iD", len);
+  output.print(buff);
+  output.write(27);
+  output.print("[0J");
+}
+
+#define SerialClearLine() SerialClearLineOut(HWSERIAL)
+void SerialClearLineOut(Print &output) {
+  output.write(27);
+  output.print("[1G");
+  output.write(27);
+  output.print("[0J");
+}
+
 #define SerialWriteEsc(key) SerialWriteEscOut(HWSERIAL, key)
 int SerialWriteEscOut(Print &output, char key) {
   //Writes char on serial, but handles special characters (backspace, arrow keys...) correctly
