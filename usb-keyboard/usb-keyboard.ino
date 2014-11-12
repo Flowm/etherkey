@@ -9,10 +9,11 @@ char inChar;
 char peekChar;
 char kbd_buff[KBD_BUFFSZ];
 int kbd_idx = 0;
+int crs_idx = 0;
 
 int in_mode = 1;
-enum mode {INVALID, COMMAND, INTERACTIVE, DEBUG};
-const char * mode_strings[] = {"invalid", "command", "interactive", "debug"};
+enum mode {INVALID, COMMAND, INTERACTIVE, DEBUG, TEST};
+const char * mode_strings[] = {"invalid", "command", "interactive", "debug", "test"};
 char * selectMode = "Select Inputmode: [1] Command - [2] Interactive - [3] Debug";
 
 void setup() {
@@ -93,9 +94,9 @@ void loop() {
 }
 
 // Util functions
-KEYCODE_TYPE escape_sequence_to_keycode(char key) {
+uint16_t escape_sequence_to_keycode(char key) {
   char in_ascii = key;
-  KEYCODE_TYPE keycode = 0;
+  uint16_t keycode = 0;
 
   if (in_ascii == 91) {
     in_ascii = HWSERIAL.peek();
@@ -121,9 +122,9 @@ KEYCODE_TYPE escape_sequence_to_keycode(char key) {
   return keycode;
 }
 
-KEYCODE_TYPE special_char_to_keycode(char key) {
+uint16_t special_char_to_keycode(char key) {
   char in_ascii = key;
-  KEYCODE_TYPE keycode = 0;
+  uint16_t keycode = 0;
 
   switch(in_ascii) {
     case 10:  //LF
@@ -162,9 +163,8 @@ void send_key(char key) {
 // Interactive mode functions
 void interactive_mode(char key) {
   char in_ascii = key;
-  KEYCODE_TYPE keycode = 0;
+  KEYCODE_TYPE keycode = special_char_to_keycode(in_ascii);
 
-  keycode = special_char_to_keycode(in_ascii);
   if (keycode) {
     send_key(keycode);
   } else if (in_ascii <= 26) {
@@ -172,22 +172,58 @@ void interactive_mode(char key) {
     keycode = in_ascii+3;
     send_key(keycode);
   } else {
-    Keyboard.print(in_ascii);
-    HWSERIAL.print(in_ascii);
+    Keyboard.write(in_ascii);
+    HWSERIAL.write(in_ascii);
   }
 }
 
 // Command mode functions
 void command_mode(char key) {
-  if (inChar == '\n' || inChar == '\r' || kbd_idx >= KBD_BUFFSZ-1) {
-    SerialPrintfln("");
-    kbd_buff[kbd_idx++] = '\0';
-    c_parse(kbd_buff);
+  char in_ascii = key;
+  uint16_t keycode = special_char_to_keycode(in_ascii);
+
+  if(keycode) {
+    switch(keycode) {
+      case KEY_ENTER:
+        SerialPrintfln("");
+        kbd_buff[kbd_idx] = '\0';
+        c_parse(kbd_buff);
+        crs_idx = kbd_idx;
+        kbd_idx = 0;
+        break;
+      case KEY_BACKSPACE:
+        SerialDeleteChars(1);
+        if (kbd_idx>0) kbd_idx--;
+        break;
+      case KEY_LEFT:
+        if (crs_idx>0) {
+          SerialAnsiEsc("1D");
+          crs_idx--;
+        }
+        break;
+      case KEY_RIGHT:
+        if (crs_idx<kbd_idx) {
+          SerialAnsiEsc("1C");
+          crs_idx++;
+        }
+        break;
+      case KEY_UP:
+        while (crs_idx>kbd_idx)
+          HWSERIAL.write(kbd_buff[kbd_idx++]);
+        break;
+    }
+  } else if (in_ascii == 3) {
+    SerialClearLine();
+    crs_idx = kbd_idx;
     kbd_idx = 0;
+  } else if (kbd_idx >= KBD_BUFFSZ-1) {
+    command_mode('\n');
+  } else if (in_ascii <= 26) {
   } else {
-    //TODO: React to special characters (backspace, arrow keys...)
-    kbd_buff[kbd_idx++] = inChar;
-    HWSERIAL.write(inChar);
+    HWSERIAL.write(in_ascii);
+    if (crs_idx>kbd_idx) crs_idx = kbd_idx;
+    kbd_buff[crs_idx++] = in_ascii;
+    if (kbd_idx<crs_idx) kbd_idx++;
   }
 }
 

@@ -47,6 +47,14 @@ void SerialClearLineOut(Print &output) {
   output.print("[0J");
 }
 
+#define SerialAnsiEsc(esc) SerialAnsiEscOut(HWSERIAL, esc)
+void SerialAnsiEscOut(Print &output, char * seq) {
+  char buff[10];
+  snprintf(buff, sizeof(buff), "[%s", seq);
+  output.write(27);
+  output.print(buff);
+}
+
 
 // Compile time bernstein hash function
 constexpr unsigned int str2int(const char* str, int h = 0) {
