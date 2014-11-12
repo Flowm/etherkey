@@ -103,14 +103,12 @@ void loop() {
   }
 }
 
-
-KEYCODE_TYPE escape_sequence_to_keycode() {
+// Util functions
+KEYCODE_TYPE escape_sequence_to_keycode(char key) {
+  char in_ascii = key;
   KEYCODE_TYPE keycode = 0;
-  char in_ascii;
 
-  in_ascii = HWSERIAL.peek();
   if (in_ascii == 91) {
-    HWSERIAL.read();
     in_ascii = HWSERIAL.peek();
     if (in_ascii >= 65 && in_ascii <= 68) {
       HWSERIAL.read();
@@ -123,6 +121,7 @@ KEYCODE_TYPE escape_sequence_to_keycode() {
       if (in_ascii == 68)
         keycode = KEY_LEFT;
     } else if (in_ascii == 51) {
+      HWSERIAL.read();
       in_ascii = HWSERIAL.peek();
       if (in_ascii == 126) {
         HWSERIAL.read();
@@ -133,49 +132,61 @@ KEYCODE_TYPE escape_sequence_to_keycode() {
   return keycode;
 }
 
-void interactive_send(char key) {
-  //TODO: Print on Serial
-  //TODO: Make it work on Windows
+KEYCODE_TYPE special_char_to_keycode(char key) {
+  char in_ascii = key;
   KEYCODE_TYPE keycode = 0;
 
-  switch(key) {
+  switch(in_ascii) {
     case 10:  //LF
     case 13:  //CR
-      SendKey(KEY_ENTER);
+      keycode = KEY_ENTER;
       break;
-
     case 8:   //BS
     case 127: //DEL
-      SendKey(KEY_BACKSPACE);
+      keycode = KEY_BACKSPACE;
       break;
-
     case 9:   //HT
-      SendKey(KEY_TAB);
+      keycode = KEY_TAB;
       break;
-
     case 27:
-      key = HWSERIAL.peek();
-      if(key == 255) {
-        SendKey(KEY_ESC);
+      in_ascii = HWSERIAL.peek();
+      if(in_ascii == 255) {
+        keycode = KEY_ESC;
       } else {
-        keycode = escape_sequence_to_keycode();
-        if (keycode)
-          SendKey(keycode);
-      }
-      break;
-
-    default:
-      if (key <= 26) {
-        Keyboard.set_modifier(MODIFIERKEY_CTRL);
-        SendKey(key+3);
-      } else {
-        Keyboard.print(key);
-        SerialWriteEsc(key);
+        HWSERIAL.read();
+        keycode = escape_sequence_to_keycode(in_ascii);
       }
       break;
   }
+  return keycode;
 }
 
+void send_key(char key) {
+  Keyboard.set_key1(key);
+  Keyboard.send_now();
+  Keyboard.set_modifier(0);
+  Keyboard.set_key1(0);
+  Keyboard.send_now();
+}
+
+
+// Interactive mode functions
+void interactive_send(char key) {
+  char in_ascii = key;
+  KEYCODE_TYPE keycode = 0;
+
+  keycode = special_char_to_keycode(in_ascii);
+  if (keycode) {
+    send_key(keycode);
+  } else if (in_ascii <= 26) {
+    Keyboard.set_modifier(MODIFIERKEY_CTRL);
+    keycode = in_ascii+3;
+    send_key(keycode);
+  } else {
+    Keyboard.print(in_ascii);
+    HWSERIAL.print(in_ascii);
+  }
+}
 
 // Command mode functions
 void c_parse(char * str) {
