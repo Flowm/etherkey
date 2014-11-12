@@ -1,5 +1,4 @@
 #define HWSERIAL Serial1
-
 #include "utils.h"
 
 #define KBD_BUFFSZ 200
@@ -57,23 +56,13 @@ void loop() {
       } while (peekChar != 27 || peekChar != PREFIX || (peekChar >= 49 && peekChar <= 51));
     }
 
-
     switch(in_mode) {
       case COMMAND:
-        if (inChar == '\n' || inChar == '\r' || kbd_idx >= KBD_BUFFSZ-1) {
-          SerialPrintfln("");
-          kbd_buff[kbd_idx++] = '\0';
-          c_parse(kbd_buff);
-          kbd_idx = 0;
-        } else {
-          //TODO: React to special characters (backspace, arrow keys...)
-          kbd_buff[kbd_idx++] = inChar;
-          HWSERIAL.write(inChar);
-        }
+        command_mode(inChar);
         break;
 
       case INTERACTIVE:
-        interactive_send(inChar);
+        interactive_mode(inChar);
         break;
 
       case DEBUG:
@@ -171,7 +160,7 @@ void send_key(char key) {
 
 
 // Interactive mode functions
-void interactive_send(char key) {
+void interactive_mode(char key) {
   char in_ascii = key;
   KEYCODE_TYPE keycode = 0;
 
@@ -189,6 +178,19 @@ void interactive_send(char key) {
 }
 
 // Command mode functions
+void command_mode(char key) {
+  if (inChar == '\n' || inChar == '\r' || kbd_idx >= KBD_BUFFSZ-1) {
+    SerialPrintfln("");
+    kbd_buff[kbd_idx++] = '\0';
+    c_parse(kbd_buff);
+    kbd_idx = 0;
+  } else {
+    //TODO: React to special characters (backspace, arrow keys...)
+    kbd_buff[kbd_idx++] = inChar;
+    HWSERIAL.write(inChar);
+  }
+}
+
 void c_parse(char * str) {
   int state = 0;
   char * pch;
