@@ -13,8 +13,8 @@ int crs_idx = 0;
 
 int in_mode = 1;
 enum mode {INVALID, COMMAND, INTERACTIVE, DEBUG};
-const char * mode_strings[] = {"invalid", "command", "interactive", "debug"};
-char * selectMode = "Select Inputmode: [1] Command - [2] Interactive - [3] Debug";
+const char* mode_strings[] = {"invalid", "command", "interactive", "debug"};
+const char* selectMode = "Select Inputmode: [1] Command - [2] Interactive - [3] Debug";
 
 void setup() {
   HWSERIAL.begin(115200);
@@ -160,9 +160,8 @@ void interactive_mode(char key) {
   if (keycode) {
     send_key(keycode);
   } else if (in_ascii <= 26) {
-    Keyboard.set_modifier(MODIFIERKEY_CTRL);
     keycode = in_ascii+3;
-    send_key(keycode);
+    send_key(keycode, MODIFIERKEY_CTRL & 0x3FFF);
   } else {
     Keyboard.write(in_ascii);
     HWSERIAL.write(in_ascii);
@@ -219,9 +218,8 @@ void command_mode(char key) {
   }
 }
 
-void c_parse(char * str) {
-  int state = 0;
-  char * pch;
+void c_parse(char* str) {
+  char* pch;
 
   pch = strtok(str," ");
 #ifdef MYDEBUG
@@ -230,38 +228,33 @@ void c_parse(char * str) {
   switch (str2int(pch)) {
     case str2int("SendRaw"):
       // Send the rest of the line literally
-      pch = strtok (NULL,"");
-      if (pch != NULL)
+      if ((pch = strtok (NULL,"")))
         c_sendraw(pch);
       break;
 
     case str2int("Send"):
       // Send the rest of the line (and parse special characters)
-      pch = strtok (NULL,"");
-      if (pch != NULL)
+      if ((pch = strtok (NULL,"")))
         c_send(pch);
       break;
 
     case str2int("UnicodeLinux"):
     case str2int("UCL"):
       // Send a single unicode character (on Linux)
-      pch = strtok (NULL,"");
-      if (pch != NULL)
+      if ((pch = strtok (NULL,"")))
         c_unicode(pch, true);
       break;
 
     case str2int("UnicodeWindows"):
     case str2int("UCW"):
       // Send a single unicode character (on Windows)
-      pch = strtok (NULL,"");
-      if (pch != NULL)
+      if ((pch = strtok (NULL,"")))
         c_unicode(pch, false);
       break;
 
     case str2int("Sleep"):
       // Sleep a certain amount of time in ms
-      pch = strtok (NULL,"");
-      if (pch != NULL)
+      if ((pch = strtok (NULL,"")))
         c_sleep(pch);
       break;
 
@@ -282,10 +275,10 @@ void c_parse(char * str) {
   }
 }
 
-void c_sendraw(char * pch) {
-  char * c = pch;
+void c_sendraw(char* pch) {
+  char* c = pch;
 
-  while (*c != NULL) {
+  while (*c) {
     KEYCODE_TYPE keycode = unicode_to_keycode(*c);
     uint8_t key = keycode_to_key(keycode);
     uint8_t mod = keycode_to_modifier(keycode);
@@ -297,11 +290,11 @@ void c_sendraw(char * pch) {
   }
 }
 
-void c_send(char * pch) {
-  char * c = pch;
+void c_send(char* pch) {
+  char* c = pch;
   int modifier = 0;
 
-  while (*c != NULL) {
+  while (*c) {
     switch (*c) {
       case '!':
         // ALT
@@ -333,11 +326,11 @@ void c_send(char * pch) {
   }
 }
 
-void c_unicode(char * pch, bool linux) {
+void c_unicode(char* pch, bool linux) {
   //XXX
 }
 
-void c_sleep(char * pch) {
+void c_sleep(char* pch) {
   int time = atoi(pch);
 #ifdef MYDEBUG
   SerialPrintfln("\tSleep %i ms", time);

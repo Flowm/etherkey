@@ -9,7 +9,7 @@
 
 #define SerialPrintf(fmt, ...) SerialPrintfOut(HWSERIAL, 0, fmt, ##__VA_ARGS__)
 #define SerialPrintfln(fmt, ...) SerialPrintfOut(HWSERIAL, 1, fmt, ##__VA_ARGS__)
-void SerialPrintfOut(Print &output, bool newline, char * fmt, ...) {
+void SerialPrintfOut(Print &output, bool newline, const char* fmt, ...) {
   char buff[128];
   va_list args;
   va_start (args, fmt);
@@ -48,7 +48,7 @@ void SerialClearLineOut(Print &output) {
 }
 
 #define SerialAnsiEsc(esc) SerialAnsiEscOut(HWSERIAL, esc)
-void SerialAnsiEscOut(Print &output, char * seq) {
+void SerialAnsiEscOut(Print &output, const char* seq) {
   char buff[10];
   snprintf(buff, sizeof(buff), "[%s", seq);
   output.write(27);
