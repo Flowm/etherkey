@@ -151,8 +151,9 @@ uint16_t special_char_to_keycode(char key) {
   return keycode;
 }
 
-void send_key(char key) {
+void send_key(uint8_t key, uint8_t mod=0) {
   Keyboard.set_key1(key);
+  if (mod) Keyboard.set_modifier(mod);
   Keyboard.send_now();
   Keyboard.set_modifier(0);
   Keyboard.set_key1(0);
@@ -235,7 +236,6 @@ void c_parse(char * str) {
 #ifdef MYDEBUG
   SerialPrintfln("\t%-10s -> %x", pch, str2int(pch));
 #endif
-
   switch (str2int(pch)) {
     case str2int("SendRaw"):
       // Send the rest of the line literally
@@ -295,10 +295,13 @@ void c_sendraw(char * pch) {
   char * c = pch;
 
   while (*c != NULL) {
+    KEYCODE_TYPE keycode = unicode_to_keycode(*c);
+    uint8_t key = keycode_to_key(keycode);
+    uint8_t mod = keycode_to_modifier(keycode);
 #ifdef MYDEBUG
-    SerialPrintfln("\tWriting %c via USB", c);
+    SerialPrintfln("Writing %c via USB. Keycode: %3i", *c, key);
 #endif
-    //XXX
+    send_key(key, mod);
     c++;
   }
 }
@@ -329,11 +332,10 @@ void c_send(char * pch) {
         KEYCODE_TYPE keycode = unicode_to_keycode(*c);
         uint8_t key = keycode_to_key(keycode);
         uint8_t mod = keycode_to_modifier(keycode) | modifier;
-
 #ifdef MYDEBUG
         SerialPrintfln("Writing %c via USB. Keycode: %3i", *c, key);
 #endif
-        usb_keyboard_press(key, mod);
+        send_key(key, mod);
         break;
     }
     c++;
