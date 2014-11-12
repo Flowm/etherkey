@@ -12,8 +12,8 @@ int kbd_idx = 0;
 int crs_idx = 0;
 
 int in_mode = 1;
-enum mode {INVALID, COMMAND, INTERACTIVE, DEBUG, TEST};
-const char * mode_strings[] = {"invalid", "command", "interactive", "debug", "test"};
+enum mode {INVALID, COMMAND, INTERACTIVE, DEBUG};
+const char * mode_strings[] = {"invalid", "command", "interactive", "debug"};
 char * selectMode = "Select Inputmode: [1] Command - [2] Interactive - [3] Debug";
 
 void setup() {
@@ -67,27 +67,18 @@ void loop() {
         break;
 
       case DEBUG:
-        SerialPrintfln("Recv -> Character: %c - ASCII-Code: %3i - USB-Scancode: %3i", inChar, inChar, unicode_to_keycode(inChar));
-        //SerialPrintfln("Recv -> ASCII-Code:: %3i", inChar);
-        break;
-
-      case 4: //VERBOSE DEBUG MODE
-        SerialPrintfln("Recv -> Character: %c - ASCII-Code: %3i", inChar, inChar);
-
         char keycode_b[33];
         char key_b[33];
         char mod_b[33];
 
         KEYCODE_TYPE keycode = unicode_to_keycode(inChar);
         itoa(keycode, keycode_b, 2);
-
         uint8_t key = keycode_to_key(keycode);
         itoa(key, key_b, 2);
-
         uint8_t mod = keycode_to_modifier(keycode);
         itoa(mod, mod_b, 2);
 
-        SerialPrintfln("keycode: %3i = %08s | key: %3i = %08s | mod: %3i = %08s", keycode, keycode_b, key, key_b, mod, mod_b);
+        SerialPrintfln("Keycode: %3i = %08s | Key: %3i = %08s | Mod:%2i | ASCII: %3i = %c", keycode, keycode_b, key, key_b, mod, inChar, inChar);
         break;
     }
   }
