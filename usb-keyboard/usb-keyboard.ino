@@ -213,29 +213,35 @@ uint16_t parse_keyname(const char* keyname) {
   return key;
 }
 
-void send_key(uint8_t key, uint8_t mod=0) {
-  Keyboard.set_key1(key);
-  if (mod) Keyboard.set_modifier(mod);
-  Keyboard.send_now();
-  Keyboard.set_modifier(0);
-  Keyboard.set_key1(0);
-  Keyboard.send_now();
+void usb_send_key(uint16_t key, uint16_t mod=0) {
+  // Uses Keyboard.press from the Teensyduino Core Library
+  // key can be either a ascii char or a keycode
+#ifdef MYDEBUG
+  char key_b[33];
+  itoa(key, key_b, 2);
+  char mod_b[33];
+  itoa(mod, mod_b, 2);
+  SerialPrintfln("\tSendKey: %6i = %08s | mod: %6i = %08s", key, key_b, mod, mod_b);
+#endif
+  if (mod) Keyboard.press(mod);
+  Keyboard.press(key);
+  Keyboard.releaseAll();
 }
 
 
 // Interactive mode functions
 void interactive_mode(char key) {
   char in_ascii = key;
-  KEYCODE_TYPE keycode;
+  uint16_t keycode;
 
   if ((keycode = special_char_to_keycode(in_ascii))) {
-    send_key(keycode);
+    usb_send_key(keycode);
   } else if (in_ascii <= 26) {
-    keycode = in_ascii+3;
-    send_key(keycode, MODIFIERKEY_CTRL & 0x3FFF);
+    in_ascii = in_ascii + 'a' - 1;
+    usb_send_key(in_ascii, MODIFIERKEY_CTRL);
   } else {
-    Keyboard.write(in_ascii);
     HWSERIAL.write(in_ascii);
+    usb_send_key(in_ascii);
   }
 }
 
@@ -346,11 +352,7 @@ void c_parse(char* str) {
       // Check if input is a keyname
       uint16_t key;
       if ((key = keyname_to_keycode(pch))) {
-#ifdef MYDEBUG
-        SerialPrintfln("\tSending: %i", key);
-#endif
-        Keyboard.press(key);
-        Keyboard.release(key);
+        usb_send_key(key);
       } else {
         // Show warning about invalid command
         //TODO
@@ -363,13 +365,7 @@ void c_sendraw(char* pch) {
   char* c = pch;
 
   while (*c) {
-    KEYCODE_TYPE keycode = unicode_to_keycode(*c);
-    uint8_t key = keycode_to_key(keycode);
-    uint8_t mod = keycode_to_modifier(keycode);
-#ifdef MYDEBUG
-    SerialPrintfln("\tWriting: %c via USB. Keycode: %3i", *c, key);
-#endif
-    send_key(key, mod);
+    usb_send_key(*c);
     c++;
   }
 }
@@ -387,11 +383,7 @@ void c_send(char* pch) {
       if ((keyname_idx >= KEYNAME_BUFFSZ-1) || *c == '}') {
         keyname_buff[keyname_idx] = '\0';
         if ((keycode = parse_keyname(keyname_buff))) {
-#ifdef MYDEBUG
-          SerialPrintfln("\tSending: %i", keycode);
-#endif
-          Keyboard.press(keycode);
-          Keyboard.release(keycode);
+          usb_send_key(keycode);
         }
         keyname_idx = 0;
         braces = false;
@@ -422,13 +414,7 @@ void c_send(char* pch) {
         braces = true;
         break;
       default:
-        keycode = unicode_to_keycode(*c);
-        uint8_t key = keycode_to_key(keycode);
-        uint8_t mod = keycode_to_modifier(keycode) | modifier;
-#ifdef MYDEBUG
-        SerialPrintfln("\tWriting: %c via USB. Keycode: %3i", *c, key);
-#endif
-        send_key(key, mod);
+        usb_send_key(*c, modifier);
         modifier = 0;
         break;
     }
