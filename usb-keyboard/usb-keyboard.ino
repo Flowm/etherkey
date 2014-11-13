@@ -2,6 +2,7 @@
 #include "utils.h"
 
 #define KBD_BUFFSZ 200
+#define KEYNAME_BUFFSZ 25
 #define PREFIX 17 // CTRL-Q
 #define MYDEBUG
 
@@ -142,6 +143,23 @@ uint16_t special_char_to_keycode(char key) {
   return keycode;
 }
 
+uint16_t keyname_to_keycode(const char* keyname) {
+  uint16_t keycode = 0;
+
+#ifdef MYDEBUG
+  SerialPrintfln("\tKeyname: %-15s -> %x", keyname, str2int(keyname));
+#endif
+  switch (str2int(keyname)) {
+    case str2int("Enter"):
+      keycode = KEY_ENTER;
+      break;
+    default:
+      SerialPrintfln("Invalid keyname: %s", keyname);
+      break;
+  }
+  return keycode;
+}
+
 void send_key(uint8_t key, uint8_t mod=0) {
   Keyboard.set_key1(key);
   if (mod) Keyboard.set_modifier(mod);
@@ -155,9 +173,9 @@ void send_key(uint8_t key, uint8_t mod=0) {
 // Interactive mode functions
 void interactive_mode(char key) {
   char in_ascii = key;
-  KEYCODE_TYPE keycode = special_char_to_keycode(in_ascii);
+  KEYCODE_TYPE keycode;
 
-  if (keycode) {
+  if ((keycode = special_char_to_keycode(in_ascii))) {
     send_key(keycode);
   } else if (in_ascii <= 26) {
     keycode = in_ascii+3;
@@ -183,8 +201,13 @@ void command_mode(char key) {
         kbd_idx = 0;
         break;
       case KEY_BACKSPACE:
-        SerialDeleteChars(1);
-        if (kbd_idx>0) kbd_idx--;
+        if (crs_idx == kbd_idx) {
+          // TODO: Currently only supports deleting characters at the end of the line
+          // To delete in the middle of the Array, all following characters must be moved
+          SerialDeleteChars(1);
+          if (kbd_idx>0) kbd_idx--;
+          if (crs_idx>0) crs_idx--;
+        }
         break;
       case KEY_LEFT:
         if (crs_idx>0) {
@@ -199,8 +222,11 @@ void command_mode(char key) {
         }
         break;
       case KEY_UP:
-        while (crs_idx>kbd_idx)
+        while (crs_idx>kbd_idx) {
+          if (!kbd_buff[kbd_idx])
+            kbd_buff[kbd_idx] = ' ';
           HWSERIAL.write(kbd_buff[kbd_idx++]);
+        }
         break;
     }
   } else if (in_ascii == 3) {
@@ -223,7 +249,7 @@ void c_parse(char* str) {
 
   pch = strtok(str," ");
 #ifdef MYDEBUG
-  SerialPrintfln("\t%-10s -> %x", pch, str2int(pch));
+  SerialPrintfln("\tCommand: %-15s -> %x", pch, str2int(pch));
 #endif
   switch (str2int(pch)) {
     case str2int("SendRaw"):
@@ -283,7 +309,7 @@ void c_sendraw(char* pch) {
     uint8_t key = keycode_to_key(keycode);
     uint8_t mod = keycode_to_modifier(keycode);
 #ifdef MYDEBUG
-    SerialPrintfln("Writing %c via USB. Keycode: %3i", *c, key);
+    SerialPrintfln("\tWriting: %c via USB. Keycode: %3i", *c, key);
 #endif
     send_key(key, mod);
     c++;
@@ -293,8 +319,25 @@ void c_sendraw(char* pch) {
 void c_send(char* pch) {
   char* c = pch;
   int modifier = 0;
+  bool braces = false;
+  char keyname_buff[KEYNAME_BUFFSZ];
+  int keyname_idx = 0;
+  KEYCODE_TYPE keycode;
 
   while (*c) {
+    if (braces) {
+      if ((keyname_idx >= KEYNAME_BUFFSZ-1) || *c == '}') {
+        keyname_buff[keyname_idx] = '\0';
+        if ((keycode = keyname_to_keycode(keyname_buff)))
+          send_key(keycode);
+        keyname_idx = 0;
+        braces = false;
+      } else {
+        keyname_buff[keyname_idx++] = *c;
+      }
+      c++;
+      continue;
+    }
     switch (*c) {
       case '!':
         // ALT
@@ -312,14 +355,18 @@ void c_send(char* pch) {
         // WIN
         modifier |= MODIFIERKEY_GUI;
         break;
+      case '{':
+        braces = true;
+        break;
       default:
-        KEYCODE_TYPE keycode = unicode_to_keycode(*c);
+        keycode = unicode_to_keycode(*c);
         uint8_t key = keycode_to_key(keycode);
         uint8_t mod = keycode_to_modifier(keycode) | modifier;
 #ifdef MYDEBUG
-        SerialPrintfln("Writing %c via USB. Keycode: %3i", *c, key);
+        SerialPrintfln("\tWriting: %c via USB. Keycode: %3i", *c, key);
 #endif
         send_key(key, mod);
+        modifier = 0;
         break;
     }
     c++;
