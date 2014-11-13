@@ -153,11 +153,64 @@ uint16_t keyname_to_keycode(const char* keyname) {
     case str2int("Enter"):
       keycode = KEY_ENTER;
       break;
-    default:
-      SerialPrintfln("Invalid keyname: %s", keyname);
+    case str2int("Escape"):
+    case str2int("Esc"):
+      keycode = KEY_ESC;
+      break;
+    case str2int("Space"):
+      keycode = KEY_SPACE;
+      break;
+    case str2int("Tab"):
+      keycode = KEY_TAB;
+      break;
+    case str2int("Backspace"):
+    case str2int("BS"):
+      keycode = KEY_BACKSPACE;
+      break;
+    case str2int("Delete"):
+    case str2int("Del"):
+      keycode = KEY_DELETE;
+      break;
+    case str2int("Insert"):
+    case str2int("Ins"):
+      keycode = KEY_INSERT;
+      break;
+    case str2int("Up"):
+      keycode = KEY_UP;
+      break;
+    case str2int("Down"):
+      keycode = KEY_DOWN;
+      break;
+    case str2int("Left"):
+      keycode = KEY_LEFT;
+      break;
+    case str2int("Right"):
+      keycode = KEY_RIGHT;
+      break;
+    case str2int("Home"):
+      keycode = KEY_HOME;
+      break;
+    case str2int("End"):
+      keycode = KEY_END;
+      break;
+    case str2int("PgUp"):
+      keycode = KEY_PAGE_UP;
+      break;
+    case str2int("PgDn"):
+      keycode = KEY_PAGE_DOWN;
       break;
   }
   return keycode;
+}
+
+uint16_t parse_keyname(const char* keyname) {
+  //Returns either the keycode or a ascii char
+  uint16_t key = 0;
+  key = keyname_to_keycode(keyname);
+    SerialPrintfln("Ascii: %s", keyname);
+  if (!key && !*(keyname+1))
+    key = *keyname;
+  return key;
 }
 
 void send_key(uint8_t key, uint8_t mod=0) {
@@ -284,19 +337,24 @@ void c_parse(char* str) {
         c_sleep(pch);
       break;
 
-    case str2int("Enter"):
-      // Send the Enter Key
-      //TODO
-      break;
-
     case str2int("Help"):
       // Display a informative help message
       //TODO
       break;
 
     default:
-      // Handle unknown command
-      //TODO
+      // Check if input is a keyname
+      uint16_t key;
+      if ((key = keyname_to_keycode(pch))) {
+#ifdef MYDEBUG
+        SerialPrintfln("\tSending: %i", key);
+#endif
+        Keyboard.press(key);
+        Keyboard.release(key);
+      } else {
+        // Show warning about invalid command
+        //TODO
+      }
       break;
   }
 }
@@ -322,14 +380,19 @@ void c_send(char* pch) {
   bool braces = false;
   char keyname_buff[KEYNAME_BUFFSZ];
   int keyname_idx = 0;
-  KEYCODE_TYPE keycode;
+  uint16_t keycode;
 
   while (*c) {
     if (braces) {
       if ((keyname_idx >= KEYNAME_BUFFSZ-1) || *c == '}') {
         keyname_buff[keyname_idx] = '\0';
-        if ((keycode = keyname_to_keycode(keyname_buff)))
-          send_key(keycode);
+        if ((keycode = parse_keyname(keyname_buff))) {
+#ifdef MYDEBUG
+          SerialPrintfln("\tSending: %i", keycode);
+#endif
+          Keyboard.press(keycode);
+          Keyboard.release(keycode);
+        }
         keyname_idx = 0;
         braces = false;
       } else {
