@@ -171,15 +171,6 @@ uint16_t keyname_to_keycode(const char* keyname) {
   return keycode;
 }
 
-uint16_t parse_keyname(const char* keyname) {
-  //Returns either the keycode or a ascii char
-  uint16_t key = 0;
-  key = keyname_to_keycode(keyname);
-  if (!key && !*(keyname+1))
-    key = *keyname;
-  return key;
-}
-
 void usb_send_key(uint16_t key, uint16_t mod=0) {
   // Uses Keyboard.press from the Teensyduino Core Library
   // key can be either a ascii char or a keycode
@@ -312,13 +303,6 @@ void c_parse(char* str) {
         c_unicode(pch, false);
       break;
 
-    case str2int("Sleep"):
-    case str2int("sleep"):
-      // Sleep a certain amount of time in ms
-      if ((pch = strtok (NULL,"")))
-        c_sleep(pch);
-      break;
-
     case str2int("Help"):
     case str2int("help"):
       // Display a informative help message
@@ -326,16 +310,51 @@ void c_parse(char* str) {
       break;
 
     default:
-      // Check if input is a keyname
-      uint16_t key;
-      if ((key = keyname_to_keycode(pch))) {
-        usb_send_key(key);
-      } else {
+      // Check if input is a keyname and send it
+      if (!c_parse_ext(pch, false)) {
         // Show warning about invalid command
         //TODO
       }
       break;
   }
+}
+
+bool c_parse_ext(char* str, bool send_single) {
+  // Sends matching keyname or reacts to special commands
+  uint16_t key = 0;
+  int num = 1;
+  char* pch;
+
+#ifdef MYDEBUG
+  SerialPrintfln("\tCmd-ext: %-15s -> %x", str, str2int(str));
+#endif
+  if (!(key = keyname_to_keycode(str))) {
+    if (send_single && !*(str+1) && (*str >= 32 || *str < 127)) {
+      key = *str;
+    }
+  }
+  if (key) {
+    if ((str = strtok(NULL," ")))
+      num = atoi(str);
+    while (num>0) {
+      usb_send_key(key);
+      num--;
+    }
+    return true;
+  } else {
+    switch (str2int(str)) {
+      case str2int("Sleep"):
+      case str2int("sleep"):
+      case str2int("Delay"):
+      case str2int("delay"):
+      // Sleep a certain amount of time in ms
+      if ((pch = strtok(NULL,"")) && (num = atoi(pch))) {
+        c_sleep(num);
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 void c_sendraw(char* pch) {
@@ -353,14 +372,13 @@ void c_send(char* pch) {
   bool braces = false;
   char keyname_buff[KEYNAME_BUFFSZ];
   int keyname_idx = 0;
-  uint16_t keycode;
 
   while (*c) {
     if (braces) {
       if ((keyname_idx >= KEYNAME_BUFFSZ-1) || *c == '}') {
         keyname_buff[keyname_idx] = '\0';
-        if ((keycode = parse_keyname(keyname_buff))) {
-          usb_send_key(keycode);
+        if ((pch = strtok(keyname_buff," "))) {
+          c_parse_ext(pch, true);
         }
         keyname_idx = 0;
         braces = false;
@@ -434,13 +452,13 @@ void c_unicode(char* pch, bool linux) {
   }
 }
 
-void c_sleep(char* pch) {
-  int time = atoi(pch);
+void c_sleep(int ms) {
 #ifdef MYDEBUG
-  SerialPrintfln("\tSleep %i ms", time);
+  SerialPrintfln("\tSleeping: %i ms", ms);
 #endif
-  //XXX
+  delay(ms);
 }
+
 
 // Debug mode functions
 void debug_mode(char in_ascii) {

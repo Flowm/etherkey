@@ -101,5 +101,25 @@ Non printable characters can be sent by specifying the keyname enclosed in brace
 * `{PgUp}`
 * `{PgDn}`
 
+These keynames are also recognized as first word in command mode.
+
+##### Escape sequence
+
+To send a single character literally, it can be enclosed in braces:
+
+* `{x}`
+* `{!}`
+* `{+}`
+* `{^}`
+* `{#}`
+* `{{}`
+* `{}}`
+
+This syntax can also be used to repeat a keystroke multiple times:
+
+* Enclose the character or keyname followed by a whitespace and the number of repetitions in braces.
+	* For example: `{x 10}` sends the x character 10 times and `{Enter 5}` presses the Enter key 5 times.
+
+
 ### Debug mode
 Displays information about the received character (ASCII code, USB keycode)
