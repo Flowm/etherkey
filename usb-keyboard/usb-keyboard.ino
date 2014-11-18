@@ -114,8 +114,7 @@ uint16_t escape_sequence_to_keycode(char key) {
   return keycode;
 }
 
-uint16_t special_char_to_keycode(char key) {
-  char in_ascii = key;
+uint16_t special_char_to_keycode(char in_ascii) {
   uint16_t keycode = 0;
 
   switch(in_ascii) {
@@ -230,8 +229,7 @@ void usb_send_key(uint16_t key, uint16_t mod=0) {
 
 
 // Interactive mode functions
-void interactive_mode(char key) {
-  char in_ascii = key;
+void interactive_mode(char in_ascii) {
   uint16_t keycode;
 
   if ((keycode = special_char_to_keycode(in_ascii))) {
@@ -246,8 +244,7 @@ void interactive_mode(char key) {
 }
 
 // Command mode functions
-void command_mode(char key) {
-  char in_ascii = key;
+void command_mode(char in_ascii) {
   uint16_t keycode = special_char_to_keycode(in_ascii);
 
   if(keycode) {
