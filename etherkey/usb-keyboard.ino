@@ -378,7 +378,38 @@ void c_send(char* pch) {
 }
 
 void c_unicode(char* pch, bool linux) {
-  //XXX
+  char* c = pch;
+  int modifier = 0;
+  if (linux) {
+    modifier |= MODIFIERKEY_CTRL;
+    modifier |= MODIFIERKEY_SHIFT;
+    usb_send_key('u', modifier);
+    while (*c) {
+      usb_send_key(*c);
+      c++;
+    }
+    usb_send_key(KEY_ENTER);
+  } else {
+    if (!keyboard_leds & (1<<0))
+      usb_send_key(KEY_NUM_LOCK);
+    Keyboard.press(MODIFIERKEY_ALT);
+    Keyboard.press(KEYPAD_PLUS);
+    Keyboard.release(KEYPAD_PLUS);
+    while (*c) {
+      if (*c >= '1' && *c <= '9') {
+        Keyboard.press((uint16_t)(*c+40) | 0x4000);
+        Keyboard.release((uint16_t)(*c+40) | 0x4000);
+      } else if (*c == '0') {
+        Keyboard.press(KEYPAD_0);
+        Keyboard.release(KEYPAD_0);
+      } else {
+        Keyboard.press(*c);
+        Keyboard.release(*c);
+      }
+      c++;
+    }
+    Keyboard.releaseAll();
+  }
 }
 
 void c_sleep(char* pch) {

@@ -58,6 +58,13 @@ Sends the rest of the line literally
 Sends the rest of the line while interpreting special characters.
 This command behaves similarly to the send command of [AutoHotkey](http://ahkscript.org/docs/commands/Send.htm)
 
+#### UnicodeLinux or UCL
+Initializes the GKT+/Qt Unicode Sequence and sends the following 4-digit hexadecimal Unicode Character.
+
+#### UnicodeWindows or UCW (experimental)
+Initializes the Windows Unicode Sequence and sends the following Unicode Character. Please note: Some Windows applications require 4-digit decimal Code (e.g. Wordpad, Chrome), some other require 4-digit hexadecimal Code (e.g. Notepad++, Firefox)
+You might as well need to [change a Registry Setting](http://en.wikipedia.org/wiki/Unicode_input#In_Microsoft_Windows) on your Windows machine.
+
 ##### Modifiers
 The following characters are treated as modifiers:
 
