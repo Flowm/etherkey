@@ -234,6 +234,14 @@ void interactive_mode(char in_ascii) {
 
   if ((keycode = special_char_to_keycode(in_ascii))) {
     usb_send_key(keycode);
+    switch(keycode) {
+      case KEY_ENTER:
+        SerialPrintfln("");
+        break;
+      case KEY_BACKSPACE:
+        SerialDeleteChars(1);
+        break;
+    }
   } else if (in_ascii <= 26) {
     in_ascii = in_ascii + 'a' - 1;
     usb_send_key(in_ascii, MODIFIERKEY_CTRL);
