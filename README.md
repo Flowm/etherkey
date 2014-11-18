@@ -13,10 +13,11 @@ Setup
 -------
 Example setup with a Raspberry PI for the ethernet connection. (The Teensy can also be conntrolled directly over the Serial UART)
 
+![](doc/teensy-pi_bb.png)
 
 Install
 -------
-* Flash the Teensy with the sketch in the usb-keyboard folder. (Using [Teensyduino](https://www.pjrc.com/teensy/teensyduino.html))
+* Flash the Teensy with the sketch in the etherkey folder. (Using [Teensyduino](https://www.pjrc.com/teensy/teensyduino.html))
 * Connect to the Teensy over the serial UART ports
 
 ### Configuring the raspberry to use the serial port
