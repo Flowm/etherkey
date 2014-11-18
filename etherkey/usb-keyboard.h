@@ -1,3 +1,5 @@
+#pragma once
+
 #define HWSERIAL Serial1
 #include "utils.h"
 
@@ -7,6 +9,7 @@
 #define PREFIX 17 // CTRL-Q
 
 // Util functions
+int mode_select(char in_ascii, int oldmode);
 uint16_t escape_sequence_to_keycode(char in_ascii);
 uint16_t special_char_to_keycode(char in_ascii);
 uint16_t keyname_to_keycode(const char* keyname);
@@ -23,3 +26,6 @@ void c_sendraw(char* pch);
 void c_send(char* pch);
 void c_unicode(char* pch, bool linux);
 void c_sleep(char* pch);
+
+// Debug mode functions
+void debug_mode(char in_ascii);

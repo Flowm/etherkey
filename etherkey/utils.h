@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Print.h>
-#include "usb_keyboard.c"
 
 #ifndef HWSERIAL
 #define HWSERIAL Serial

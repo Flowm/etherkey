@@ -1,6 +1,41 @@
 #include "usb-keyboard.h"
 
 // Util functions
+int mode_select(char in_ascii, int oldmode) {
+  int newmode = 0;
+  char peekChar;
+
+  if (in_ascii == PREFIX) {
+    SerialPrintf("%s", selectMode);
+    do {
+      while (HWSERIAL.available() == 0) {
+        delay(100);
+      }
+      peekChar = HWSERIAL.peek();
+      if (peekChar == PREFIX) {
+        in_ascii = HWSERIAL.read();
+        SerialDeleteChars(strlen(selectMode));
+        return 0;
+      } else if (peekChar > '0' && peekChar < ('0'+sizeof(mode_strings)/sizeof(char*))) {
+        in_ascii = HWSERIAL.read();
+        newmode = in_ascii - '0';
+        SerialClear();
+        SerialPrintfln("Switching to %s mode", mode_strings[newmode]);
+        return newmode;
+      } else if (peekChar == 27) {
+        in_ascii = HWSERIAL.read();
+        SerialDeleteChars(strlen(selectMode));
+        return oldmode;
+      } else {
+        in_ascii = HWSERIAL.read();
+        SerialDeleteChars(strlen(selectMode));
+        SerialPrintf("%s", selectMode);
+      }
+    } while (peekChar != 27 || peekChar != PREFIX || (peekChar >= 49 && peekChar <= 51));
+  }
+  return 0;
+}
+
 uint16_t escape_sequence_to_keycode(char key) {
   char in_ascii = key;
   uint16_t keycode = 0;
@@ -352,4 +387,9 @@ void c_sleep(char* pch) {
   SerialPrintfln("\tSleep %i ms", time);
 #endif
   //XXX
+}
+
+// Debug mode functions
+void debug_mode(char in_ascii) {
+  SerialPrintfln("ASCII: %3i = %c", in_ascii, in_ascii);
 }
