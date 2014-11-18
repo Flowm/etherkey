@@ -100,52 +100,71 @@ uint16_t keyname_to_keycode(const char* keyname) {
 #endif
   switch (str2int(keyname)) {
     case str2int("Enter"):
+    case str2int("enter"):
       keycode = KEY_ENTER;
       break;
     case str2int("Escape"):
+    case str2int("escape"):
     case str2int("Esc"):
+    case str2int("esc"):
       keycode = KEY_ESC;
       break;
     case str2int("Space"):
+    case str2int("space"):
       keycode = KEY_SPACE;
       break;
     case str2int("Tab"):
+    case str2int("tab"):
       keycode = KEY_TAB;
       break;
     case str2int("Backspace"):
+    case str2int("backspace"):
     case str2int("BS"):
+    case str2int("bs"):
       keycode = KEY_BACKSPACE;
       break;
     case str2int("Delete"):
+    case str2int("delete"):
     case str2int("Del"):
+    case str2int("del"):
       keycode = KEY_DELETE;
       break;
     case str2int("Insert"):
+    case str2int("insert"):
     case str2int("Ins"):
+    case str2int("ins"):
       keycode = KEY_INSERT;
       break;
     case str2int("Up"):
+    case str2int("up"):
       keycode = KEY_UP;
       break;
     case str2int("Down"):
+    case str2int("down"):
       keycode = KEY_DOWN;
       break;
     case str2int("Left"):
+    case str2int("left"):
       keycode = KEY_LEFT;
       break;
     case str2int("Right"):
+    case str2int("right"):
       keycode = KEY_RIGHT;
       break;
     case str2int("Home"):
+    case str2int("home"):
       keycode = KEY_HOME;
       break;
     case str2int("End"):
+    case str2int("end"):
       keycode = KEY_END;
       break;
     case str2int("PgUp"):
+    case str2int("pgup"):
       keycode = KEY_PAGE_UP;
       break;
     case str2int("PgDn"):
+    case str2int("pgdn"):
       keycode = KEY_PAGE_DOWN;
       break;
   }
@@ -156,7 +175,6 @@ uint16_t parse_keyname(const char* keyname) {
   //Returns either the keycode or a ascii char
   uint16_t key = 0;
   key = keyname_to_keycode(keyname);
-    SerialPrintfln("Ascii: %s", keyname);
   if (!key && !*(keyname+1))
     key = *keyname;
   return key;
@@ -261,18 +279,20 @@ void command_mode(char in_ascii) {
 void c_parse(char* str) {
   char* pch;
 
-  pch = strtok(str," ");
+  if (!(pch = strtok(str," "))) return;
 #ifdef MYDEBUG
   SerialPrintfln("\tCommand: %-15s -> %x", pch, str2int(pch));
 #endif
   switch (str2int(pch)) {
     case str2int("SendRaw"):
+    case str2int("sendraw"):
       // Send the rest of the line literally
       if ((pch = strtok (NULL,"")))
         c_sendraw(pch);
       break;
 
     case str2int("Send"):
+    case str2int("send"):
       // Send the rest of the line (and parse special characters)
       if ((pch = strtok (NULL,"")))
         c_send(pch);
@@ -293,12 +313,14 @@ void c_parse(char* str) {
       break;
 
     case str2int("Sleep"):
+    case str2int("sleep"):
       // Sleep a certain amount of time in ms
       if ((pch = strtok (NULL,"")))
         c_sleep(pch);
       break;
 
     case str2int("Help"):
+    case str2int("help"):
       // Display a informative help message
       //TODO
       break;
