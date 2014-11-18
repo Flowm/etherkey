@@ -1,10 +1,4 @@
-#define HWSERIAL Serial1
-#include "utils.h"
-
-#define KBD_BUFFSZ 200
-#define KEYNAME_BUFFSZ 25
-#define PREFIX 17 // CTRL-Q
-#define MYDEBUG
+#include "usb-keyboard.h"
 
 char inChar;
 char peekChar;
