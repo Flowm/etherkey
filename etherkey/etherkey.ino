@@ -12,7 +12,7 @@ const char* mode_strings[] = {"invalid", "command", "interactive", "debug"};
 const char* selectMode = "Select Inputmode: [1] Command - [2] Interactive - [3] Debug";
 
 void setup() {
-  HWSERIAL.begin(115200);
+  HWSERIAL.begin(57600);
   delay(1000);
   SerialClear();
   SerialPrintfln("Switching to %s mode", mode_strings[mode]);
