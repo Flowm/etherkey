@@ -289,20 +289,6 @@ void c_parse(char* str) {
         c_send(pch);
       break;
 
-    case str2int("UnicodeLinux"):
-    case str2int("UCL"):
-      // Send a single unicode character (on Linux)
-      if ((pch = strtok (NULL,"")))
-        c_unicode(pch, true);
-      break;
-
-    case str2int("UnicodeWindows"):
-    case str2int("UCW"):
-      // Send a single unicode character (on Windows)
-      if ((pch = strtok (NULL,"")))
-        c_unicode(pch, false);
-      break;
-
     case str2int("Help"):
     case str2int("help"):
       // Display a informative help message
@@ -347,11 +333,29 @@ bool c_parse_ext(char* str, bool send_single) {
       case str2int("sleep"):
       case str2int("Delay"):
       case str2int("delay"):
-      // Sleep a certain amount of time in ms
-      if ((pch = strtok(NULL,"")) && (num = atoi(pch))) {
-        c_sleep(num);
-        return true;
-      }
+        // Sleep a certain amount of time in ms
+        if ((pch = strtok(NULL,"")) && (num = atoi(pch))) {
+          c_sleep(num);
+          return true;
+
+        }
+        break;
+      case str2int("UnicodeLinux"):
+      case str2int("UCL"):
+        // Send a single unicode character (on Linux)
+        if ((pch = strtok (NULL,""))) {
+          c_unicode(pch, true);
+          return true;
+        }
+        break;
+
+      case str2int("UnicodeWindows"):
+      case str2int("UCW"):
+        // Send a single unicode character (on Windows)
+        if ((pch = strtok (NULL,""))) {
+          c_unicode(pch, false);
+        }
+        break;
     }
   }
   return false;
