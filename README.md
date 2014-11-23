@@ -6,24 +6,37 @@ By using dedicated hardware it is possible to control systems even before the op
 
 Requirements
 ------------
-* [Teensy 3](https://www.pjrc.com/teensy/index.html)
-* [Raspberry PI](http://www.raspberrypi.org/) (Optional for network features)
+* [Teensy 3](https://www.pjrc.com/teensy/index.html),
+* [Raspberry PI](http://www.raspberrypi.org/) (Optional for network features) or
+* USB-to-UART Adapter, [for example](http://www.adafruit.com/product/954).
 
 Setup
 -------
-Example setup with a Raspberry PI for the ethernet connection. (The Teensy can also be conntrolled directly over the Serial UART)
+### Using a Raspberry PI for Network features
+Example setup with a Raspberry PI for the ethernet connection.
 
 ![](doc/teensy-pi_bb.png)
+
+### Direct connection to Teensy
+You may also connect directly to the Teensy, using a USB-to-UART Adapter.
+
+Connect Ground to Teensy's GND-Pin, TX to Pin 0, RX to Pin 1.
+
 
 Install
 -------
 * Flash the Teensy with the sketch in the etherkey folder. (Using [Teensyduino](https://www.pjrc.com/teensy/teensyduino.html))
 * Connect to the Teensy over the serial UART ports
+* Connect the Teensy's USB-Port to the System you want to control.
 
 ### Configuring the raspberry to use the serial port
-When using Raspbian as operating system, the serial port [must be configured for outgoing connections](http://elinux.org/RPi_Serial_Connection#Connection_to_a_microcontroller_or_other_peripheral).
+You can skip this step, if you are connecting directly to the Teensy.
 
-After that a serial connection can be established with `cu -l /dev/ttyAMA0 -s 115200`
+When using Raspbian as operating system, the serial port [must be configured for outgoing connections](http://elinux.org/RPi_Serial_Connection#Connection_to_a_microcontroller_or_other_peripheral).
+After that a serial connection can be established with `cu -l /dev/ttyAMA0 -s 57600`
+
+If you are not using the Raspberry, you can use any tool you like to connect to the Teensy. Baudrate is 57600, device most likely `/dev/ttyUSB0` on Linux/UNIX.
+For example: `cu -l /dev/ttyUSB0 -s 57600`
 
 
 Usage
@@ -63,6 +76,7 @@ Initializes the GKT+/Qt Unicode Sequence and sends the following 4-digit hexadec
 
 #### UnicodeWindows or UCW (experimental)
 Initializes the Windows Unicode Sequence and sends the following Unicode Character. Please note: Some Windows applications require 4-digit decimal Code (e.g. Wordpad, Chrome), some other require 4-digit hexadecimal Code (e.g. Notepad++, Firefox)
+
 You might as well need to [change a Registry Setting](http://en.wikipedia.org/wiki/Unicode_input#In_Microsoft_Windows) on your Windows machine.
 
 ##### Modifiers
