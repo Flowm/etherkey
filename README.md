@@ -7,40 +7,37 @@ By using dedicated hardware it is possible to control systems even before the op
 Requirements
 ------------
 * [Teensy 3](https://www.pjrc.com/teensy/index.html),
-* [Raspberry PI](http://www.raspberrypi.org/) (Optional for network features) or
-* USB-to-UART Adapter, [for example](http://www.adafruit.com/product/954).
+* One of the following:
+  * a) USB-to-UART Adapter, [for example](http://www.adafruit.com/product/954)
+  * b) [Raspberry PI](http://www.raspberrypi.org/)
 
 Setup
 -------
-### Using a Raspberry PI for Network features
+* Flash the Teensy with the sketch in the etherkey folder. (Using [Teensyduino](https://www.pjrc.com/teensy/teensyduino.html))
+* Connect the Teensy's USB-Port to the System you want to control.
+
+### a) Direct connection to Teensy
+You may connect directly to the Teensy, using a USB-to-UART Adapter.
+
+Connect Ground to Teensy's GND-Pin, TX to Pin 0, RX to Pin 1.
+
+Now you can use any tool you like to connect to the Teensy. Baudrate is 57600, device most likely `/dev/ttyUSB0` on Linux/UNIX. For example: `cu -l /dev/ttyUSB0 -s 57600`
+
+### b) Using a Raspberry PI for Network features
 Example setup with a Raspberry PI for the ethernet connection.
 
 ![](doc/teensy-pi_bb.png)
 
-### Direct connection to Teensy
-You may also connect directly to the Teensy, using a USB-to-UART Adapter.
+Connect GND of the Raspberry to Teensy's GND-Pin, TX to Pin 0, RX to Pin 1.
 
-Connect Ground to Teensy's GND-Pin, TX to Pin 0, RX to Pin 1.
-
-
-Install
--------
-* Flash the Teensy with the sketch in the etherkey folder. (Using [Teensyduino](https://www.pjrc.com/teensy/teensyduino.html))
-* Connect to the Teensy over the serial UART ports
-* Connect the Teensy's USB-Port to the System you want to control.
-
-### Configuring the raspberry to use the serial port
-You can skip this step, if you are connecting directly to the Teensy.
 
 When using Raspbian as operating system, the serial port [must be configured for outgoing connections](http://elinux.org/RPi_Serial_Connection#Connection_to_a_microcontroller_or_other_peripheral).
 After that a serial connection can be established with `cu -l /dev/ttyAMA0 -s 57600`
 
-If you are not using the Raspberry, you can use any tool you like to connect to the Teensy. Baudrate is 57600, device most likely `/dev/ttyUSB0` on Linux/UNIX.
-For example: `cu -l /dev/ttyUSB0 -s 57600`
 
-
-Usage
+Usage and Syntax
 -----
+
 Available modes:
 
 * Interactive mode
@@ -71,13 +68,6 @@ Sends the rest of the line literally
 Sends the rest of the line while interpreting special characters.
 This command behaves similarly to the send command of [AutoHotkey](http://ahkscript.org/docs/commands/Send.htm)
 
-#### UnicodeLinux or UCL
-Initializes the GKT+/Qt Unicode Sequence and sends the following 4-digit hexadecimal Unicode Character.
-
-#### UnicodeWindows or UCW (experimental)
-Initializes the Windows Unicode Sequence and sends the following Unicode Character. Please note: Some Windows applications require 4-digit decimal Code (e.g. Wordpad, Chrome), some other require 4-digit hexadecimal Code (e.g. Notepad++, Firefox)
-
-You might as well need to [change a Registry Setting](http://en.wikipedia.org/wiki/Unicode_input#In_Microsoft_Windows) on your Windows machine.
 
 ##### Modifiers
 The following characters are treated as modifiers:
@@ -134,6 +124,24 @@ This syntax can also be used to repeat a keystroke multiple times:
 * Enclose the character or keyname followed by a whitespace and the number of repetitions in braces.
 	* For example: `{x 10}` sends the x character 10 times and `{Enter 5}` presses the Enter key 5 times.
 
+#### Unicode characters
+Arbitrary Unicode characters can be sent by specifying the 4-digit character code after the operating system specific command:
+
+##### UnicodeLinux or UCL
+Initializes the GKT+/Qt Unicode Sequence and sends the following 4-digit hexadecimal Unicode Character.
+* For example: `{UCL 00F8}`
+
+##### UnicodeWindows or UCW (experimental)
+Initializes the Windows Unicode Sequence and sends the following Unicode Character. Please note: Some Windows applications require 4-digit decimal Code (e.g. Wordpad, Chrome), some other require 4-digit hexadecimal Code (e.g. Notepad++, Firefox)
+
+You might as well need to [change a Registry Setting](http://en.wikipedia.org/wiki/Unicode_input#In_Microsoft_Windows) on your Windows machine.
+* For example: `{UCW 00F8}`/`{UCW 0248}`
+
 
 ### Debug mode
 Displays information about the received character (ASCII code, USB keycode)
+
+
+Client
+-----
+TODO
