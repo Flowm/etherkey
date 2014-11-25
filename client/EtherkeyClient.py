@@ -1,58 +1,38 @@
-#!/usr/bin/env python2
+#!/usr/bin/python
 
-import socket
-import time
 import argparse
 import subprocess
+from subprocess import Popen
 
-# File-Mode Configuration
-rHost = '192.168.245.129'
-rPort =  1234
-
-# Live-Mode Configuration
-login = 'root'
+# serial_cmd string
 serial_cmd = 'cu -l /dev/ttyAMA0 -s 57600'
 
 ##########
 
-def initConnection():
-    global s
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((rHost, rPort))
-
 def parseArguments():
     parser = argparse.ArgumentParser(description='USB-Net-Keyboard Client 0.01')
-    parser.add_argument("-f", "--file", help="add a command file")
-    parser.add_argument("-l", "--live", help="live interaction with Net-Keyboard")
+    parser.add_argument("-l", "--live", action='store_true', help="Live-Mode interaction with Net-Keyboard")
+    parser.add_argument("-f", "--file", help="File-Mode send a command file")
+    parser.add_argument("-s", "--server", help="login@server")
     args = parser.parse_args()
-    if args.file:
-        print("Uploading command file to USB-Network-Keyboard ...")
-        fileUpload(args.file)
-        return
 
-    elif args.live:
-        print("Live-Mode started:")
-        ret = subprocess.call(["ssh", "-t", login + "@" + rHost, serial_cmd])
+    if args.live and args.server:
+        print("\nConnecting via Live-Mode:\n")
+        ret = subprocess.call(["ssh", "-t", args.server, serial_cmd])
+
+    elif args.file and args.server:
+        print("\nConnecting via File-Mode:\n")
+
+        copy = subprocess.Popen( ["cat - " + args.file + "| ssh " + args.server + " " + serial_cmd ], stdin=subprocess.PIPE, shell=True)
+        copy.communicate("$'\cc'")
 
     else:
-        print "No argument submitted"
+        print "Please use the following combinations\n"
+        print "LIVE-Mode: ./EtherkeyClient -l -s login@server"
+        print "FILE-Mode: ./EtherkeyClient -f FILE -s login@server\n"
         return
 
-def fileUpload(file):
-    f = open(file)
-
-    # Send CTRL+Q and 1 for switching into Mode 1
-    s.send(chr(17))
-    s.send('1')
-
-    for line in iter(f):
-        s.send(line)
-        time.sleep(0.01)
-    f.close()
-    print "Your file has been successfully sent"
-
 def main():
-    initConnection()
     parseArguments()
 
 if __name__=='__main__':
