@@ -22,6 +22,10 @@ void loop() {
   if (HWSERIAL.available() > 0) {
     in_ascii = HWSERIAL.read();
 
+    if (in_ascii<0 || in_ascii>127)
+      // Ignore non-basic ascii characters
+      return;
+
     if ((newmode = mode_select(in_ascii, mode))) {
       mode = newmode;
       return;
