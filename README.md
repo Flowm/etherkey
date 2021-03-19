@@ -32,7 +32,7 @@ Connect GND of the Raspberry to Teensy's GND-Pin, TX to Pin 0, RX to Pin 1.
 
 
 When using Raspbian as operating system, the serial port [must be configured for outgoing connections](http://elinux.org/RPi_Serial_Connection#Connection_to_a_microcontroller_or_other_peripheral).
-After that a serial connection can be established with `cu -l /dev/ttyAMA0 -s 57600`
+After that a serial connection can be established with `cu -l /dev/ttyAMA0 -s 57600`. On newer Raspberry PI or Raspbian versions you might need to use `/dev/serial0` instead.
 
 
 Usage and Syntax
@@ -110,7 +110,7 @@ Non printable characters can be sent by specifying the keyname enclosed in brace
 * `{PgUp}`
 * `{PgDn}`
 
-These keynames are also recognized as first word in command mode.
+These keynames can also be combined with modifiers. For example `Send ^!{Delete}` sends the `CTRL+SHIFT+Delete` combination.
 
 ##### Escape sequence
 
