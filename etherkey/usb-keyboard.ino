@@ -297,7 +297,7 @@ void c_parse(char* str) {
 
     default:
       // Check if input is a keyname and send it
-      if (!c_parse_ext(pch, false)) {
+      if (!c_parse_ext(pch, false, 0)) {
         // Show warning about invalid command
         //TODO
       }
@@ -305,7 +305,7 @@ void c_parse(char* str) {
   }
 }
 
-bool c_parse_ext(char* str, bool send_single) {
+bool c_parse_ext(char* str, bool send_single, int modifier) {
   // Sends matching keyname or reacts to special commands
   uint16_t key = 0;
   int num = 1;
@@ -323,7 +323,7 @@ bool c_parse_ext(char* str, bool send_single) {
     if ((str = strtok(NULL," ")))
       num = atoi(str);
     while (num>0) {
-      usb_send_key(key);
+      usb_send_key(key, modifier);
       num--;
     }
     return true;
@@ -382,10 +382,11 @@ void c_send(char* pch) {
       if ((keyname_idx >= KEYNAME_BUFFSZ-1) || *c == '}') {
         keyname_buff[keyname_idx] = '\0';
         if ((pch = strtok(keyname_buff," "))) {
-          c_parse_ext(pch, true);
+          c_parse_ext(pch, true, modifier);
         }
         keyname_idx = 0;
         braces = false;
+        modifier = 0;
       } else {
         keyname_buff[keyname_idx++] = *c;
       }

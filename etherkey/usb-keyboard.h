@@ -21,7 +21,7 @@ void interactive_mode(char in_ascii);
 // Command mode functions
 void command_mode(char in_ascii);
 void c_parse(char* str);
-bool c_parse_ext(char* str, bool send_single);
+bool c_parse_ext(char* str, bool send_single, int modifier);
 void c_sendraw(char* pch);
 void c_send(char* pch);
 void c_unicode(char* pch, bool linux);
