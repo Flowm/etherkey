@@ -167,6 +167,12 @@ uint16_t keyname_to_keycode(const char* keyname) {
     case str2int("pgdn"):
       keycode = KEY_PAGE_DOWN;
       break;
+    case str2int("Win"):
+    case str2int("win"):
+    case str2int("Windows"):
+    case str2int("windows"):
+      keycode = KEY_LEFT_GUI;
+      break;
   }
   return keycode;
 }
