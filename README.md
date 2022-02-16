@@ -109,6 +109,7 @@ Non printable characters can be sent by specifying the keyname enclosed in brace
 * `{End}`
 * `{PgUp}`
 * `{PgDn}`
+* `{Windows}/{Win}`
 
 These keynames can also be combined with modifiers. For example `Send ^!{Delete}` sends the `CTRL+SHIFT+Delete` combination.
 
