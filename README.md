@@ -6,7 +6,7 @@ By using dedicated hardware it is possible to control systems even before the op
 
 Requirements
 ------------
-* [Teensy 3](https://www.pjrc.com/teensy/index.html),
+* [Teensy](https://www.pjrc.com/teensy/index.html) (tested on Teensy 3 and 4.1),
 * One of the following:
   * a) USB-to-UART Adapter, [for example](http://www.adafruit.com/product/954)
   * b) [Raspberry PI](http://www.raspberrypi.org/)
