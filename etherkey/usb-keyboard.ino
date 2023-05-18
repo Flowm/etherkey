@@ -94,82 +94,68 @@ uint16_t special_char_to_keycode(char in_ascii) {
 
 uint16_t keyname_to_keycode(const char* keyname) {
   uint16_t keycode = 0;
+  char keyname_lower[KEYNAME_BUFFSZ];
 
 #ifdef MYDEBUG
   SerialPrintfln("\tKeyname: %-15s -> %x", keyname, str2int(keyname));
 #endif
-  switch (str2int(keyname)) {
-    case str2int("Enter"):
+
+  // keyname matching shall be case-insensitive
+  for (uint8_t i = 0; i <= strlen(keyname); i++) {
+    keyname_lower[i] = tolower(keyname[i]);
+  }
+
+  switch (str2int(keyname_lower)) {
     case str2int("enter"):
       keycode = KEY_ENTER;
       break;
-    case str2int("Escape"):
     case str2int("escape"):
-    case str2int("Esc"):
     case str2int("esc"):
       keycode = KEY_ESC;
       break;
-    case str2int("Space"):
     case str2int("space"):
       keycode = KEY_SPACE;
       break;
-    case str2int("Tab"):
     case str2int("tab"):
       keycode = KEY_TAB;
       break;
-    case str2int("Backspace"):
     case str2int("backspace"):
-    case str2int("BS"):
     case str2int("bs"):
       keycode = KEY_BACKSPACE;
       break;
-    case str2int("Delete"):
     case str2int("delete"):
-    case str2int("Del"):
     case str2int("del"):
       keycode = KEY_DELETE;
       break;
-    case str2int("Insert"):
     case str2int("insert"):
-    case str2int("Ins"):
     case str2int("ins"):
       keycode = KEY_INSERT;
       break;
-    case str2int("Up"):
     case str2int("up"):
       keycode = KEY_UP;
       break;
-    case str2int("Down"):
     case str2int("down"):
       keycode = KEY_DOWN;
       break;
-    case str2int("Left"):
     case str2int("left"):
       keycode = KEY_LEFT;
       break;
-    case str2int("Right"):
     case str2int("right"):
       keycode = KEY_RIGHT;
       break;
-    case str2int("Home"):
     case str2int("home"):
       keycode = KEY_HOME;
       break;
-    case str2int("End"):
     case str2int("end"):
       keycode = KEY_END;
       break;
-    case str2int("PgUp"):
     case str2int("pgup"):
       keycode = KEY_PAGE_UP;
       break;
-    case str2int("PgDn"):
     case str2int("pgdn"):
       keycode = KEY_PAGE_DOWN;
       break;
-    case str2int("Win"):
     case str2int("win"):
-    case str2int("Windows"):
     case str2int("windows"):
       keycode = KEY_LEFT_GUI;
       break;
