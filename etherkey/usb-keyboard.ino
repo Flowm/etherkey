@@ -105,60 +105,73 @@ uint16_t keyname_to_keycode(const char* keyname) {
     keyname_lower[i] = tolower(keyname[i]);
   }
 
-  switch (str2int(keyname_lower)) {
-    case str2int("enter"):
-      keycode = KEY_ENTER;
+  // F1 - F12
+  for (uint8_t f = 1; f <= 12; f++) {\
+    char fkey[4];
+    snprintf(fkey, sizeof(fkey), "f%d", f);
+    if (!strcmp(fkey, keyname_lower)) {
+      keycode = KEY_F1+f-1;
       break;
-    case str2int("escape"):
-    case str2int("esc"):
-      keycode = KEY_ESC;
-      break;
-    case str2int("space"):
-      keycode = KEY_SPACE;
-      break;
-    case str2int("tab"):
-      keycode = KEY_TAB;
-      break;
-    case str2int("backspace"):
-    case str2int("bs"):
-      keycode = KEY_BACKSPACE;
-      break;
-    case str2int("delete"):
-    case str2int("del"):
-      keycode = KEY_DELETE;
-      break;
-    case str2int("insert"):
-    case str2int("ins"):
-      keycode = KEY_INSERT;
-      break;
-    case str2int("up"):
-      keycode = KEY_UP;
-      break;
-    case str2int("down"):
-      keycode = KEY_DOWN;
-      break;
-    case str2int("left"):
-      keycode = KEY_LEFT;
-      break;
-    case str2int("right"):
-      keycode = KEY_RIGHT;
-      break;
-    case str2int("home"):
-      keycode = KEY_HOME;
-      break;
-    case str2int("end"):
-      keycode = KEY_END;
-      break;
-    case str2int("pgup"):
-      keycode = KEY_PAGE_UP;
-      break;
-    case str2int("pgdn"):
-      keycode = KEY_PAGE_DOWN;
-      break;
-    case str2int("win"):
-    case str2int("windows"):
-      keycode = KEY_LEFT_GUI;
-      break;
+    }
+  }
+
+  // Check for other special keynames, if none has been found yet
+  if (!keycode) {
+    switch (str2int(keyname_lower)) {
+      case str2int("enter"):
+        keycode = KEY_ENTER;
+        break;
+      case str2int("escape"):
+      case str2int("esc"):
+        keycode = KEY_ESC;
+        break;
+      case str2int("space"):
+        keycode = KEY_SPACE;
+        break;
+      case str2int("tab"):
+        keycode = KEY_TAB;
+        break;
+      case str2int("backspace"):
+      case str2int("bs"):
+        keycode = KEY_BACKSPACE;
+        break;
+      case str2int("delete"):
+      case str2int("del"):
+        keycode = KEY_DELETE;
+        break;
+      case str2int("insert"):
+      case str2int("ins"):
+        keycode = KEY_INSERT;
+        break;
+      case str2int("up"):
+        keycode = KEY_UP;
+        break;
+      case str2int("down"):
+        keycode = KEY_DOWN;
+        break;
+      case str2int("left"):
+        keycode = KEY_LEFT;
+        break;
+      case str2int("right"):
+        keycode = KEY_RIGHT;
+        break;
+      case str2int("home"):
+        keycode = KEY_HOME;
+        break;
+      case str2int("end"):
+        keycode = KEY_END;
+        break;
+      case str2int("pgup"):
+        keycode = KEY_PAGE_UP;
+        break;
+      case str2int("pgdn"):
+        keycode = KEY_PAGE_DOWN;
+        break;
+      case str2int("win"):
+      case str2int("windows"):
+        keycode = KEY_LEFT_GUI;
+        break;
+    }
   }
   return keycode;
 }
